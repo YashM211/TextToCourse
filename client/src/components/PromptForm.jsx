@@ -1,14 +1,35 @@
-// client/src/components/PromptForm.jsx
+// client/src/components/PromptForm.jsx (UPDATED for API call)
 import React, { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
+import useApi from "../utils/api"; // Import the new hook
+import { useNavigate } from "react-router-dom"; // To redirect after generation
 
 function PromptForm() {
   const [topic, setTopic] = useState("");
+  const [loading, setLoading] = useState(false); // New loading state
+  const { callApi } = useApi(); // Use the custom API hook
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Generating course for:", topic);
-    // TODO: Integrate with backend API call in a later milestone
+    setLoading(true);
+    try {
+      // Call your backend API to generate the course
+      const data = await callApi("/generate-course", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ topic }),
+      });
+      console.log("Course generated:", data);
+      navigate(`/course/${data._id}`); // Redirect to the new course overview page
+    } catch (error) {
+      console.error("Error generating course:", error);
+      // Display error to user
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,8 +54,9 @@ function PromptForm() {
         variant="contained"
         color="primary"
         sx={{ alignSelf: "flex-start" }}
+        disabled={loading} // Disable button while loading
       >
-        Generate Course
+        {loading ? "Generating..." : "Generate Course"}
       </Button>
     </Box>
   );

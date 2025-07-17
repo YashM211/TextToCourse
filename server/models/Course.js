@@ -5,6 +5,11 @@ import mongoose from "mongoose"; // Changed from require to import
 // Schema for quiz questions (nested within lessons)
 // ----------------------------------------------------
 const quizQuestionSchema = new mongoose.Schema({
+  userId: {
+    // To link courses to users (for persistent courses)
+    type: String, // Will store Auth0 user ID
+    required: true, // Now that Auth0 is integrated, users should be logged in to save courses
+  },
   questionText: {
     type: String,
     required: true,

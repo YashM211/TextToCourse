@@ -1,4 +1,4 @@
-// client/src/App.jsx
+// client/src/App.jsx (UPDATED)
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import {
@@ -9,14 +9,25 @@ import {
   Typography,
   Button,
 } from "@mui/material";
-import SidebarNavigation from "./components/SidebarNavigation"; // Will create this
-import HomePage from "./pages/HomePage"; // Will create this
-import CourseOverviewPage from "./pages/CourseOverviewPage"; // Will create this
-import LessonViewerPage from "./pages/LessonViewerPage"; // Will create this
-import LoginPage from "./pages/LoginPage"; // Will create this
-import SignupPage from "./pages/SignupPage"; // Will create this
+import SidebarNavigation from "./components/SidebarNavigation";
+import HomePage from "./pages/HomePage";
+import CourseOverviewPage from "./pages/CourseOverviewPage";
+import LessonViewerPage from "./pages/LessonViewerPage";
+import LoginPage from "./pages/LoginPage"; // This can be removed or simplified later
+import SignupPage from "./pages/SignupPage"; // This can be removed or simplified later
+import ProtectedRoute from './components/ProtectedRoute'; // New import
+
+
+// AUTH0 IMPORTS
+import { useAuth0 } from "@auth0/auth0-react";
 
 function App() {
+  const { isAuthenticated, loginWithRedirect, logout, isLoading } = useAuth0();
+
+  if (isLoading) {
+    return <Typography>Loading authentication...</Typography>; // Or a proper spinner
+  }
+
   return (
     <Box sx={{ display: "flex" }}>
       <AppBar
@@ -27,13 +38,21 @@ function App() {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Text-to-Learn
           </Typography>
-          {/* Example Nav Buttons - replace with proper Auth0 logic later */}
-          <Button color="inherit" href="/login">
-            Login
-          </Button>
-          <Button color="inherit" href="/signup">
-            Sign Up
-          </Button>
+          {/* Conditional Login/Logout Buttons */}
+          {!isAuthenticated ? (
+            <Button color="inherit" onClick={() => loginWithRedirect()}>
+              Login / Sign Up
+            </Button>
+          ) : (
+            <Button
+              color="inherit"
+              onClick={() =>
+                logout({ logoutParams: { returnTo: window.location.origin } })
+              }
+            >
+              Logout
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
       {/* Sidebar - uncomment and connect when ready */}
@@ -46,11 +65,23 @@ function App() {
         <Container maxWidth="lg">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/course/:id" element={<CourseOverviewPage />} />
-            <Route path="/lesson/:id" element={<LessonViewerPage />} />
-            {/* Catch-all for undefined routes */}
+            {/* Removed direct /login /signup as Auth0 handles it */}
+            <Route
+              path="/course/:id"
+              element={
+                <ProtectedRoute>
+                  <CourseOverviewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lesson/:id"
+              element={
+                <ProtectedRoute>
+                  <LessonViewerPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<h1>404 Not Found</h1>} />
           </Routes>
         </Container>

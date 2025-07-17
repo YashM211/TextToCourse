@@ -6,7 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js"
-
   },
   "type": "module",
   "keywords": [],
@@ -16,6 +15,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-oauth2-jwt-bearer": "^1.6.1",
+    "jwks-rsa": "^3.2.0",
     "mongoose": "^8.16.4",
     "openai": "^5.10.1"
   },
