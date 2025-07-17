@@ -3,7 +3,7 @@ import express from "express";
 import {
   generateCourse,
   getCourseById,
-} from "../controllers/courseController.js"; // Will create these
+} from "../controllers/courseControllers.js"; // Will create these
 
 const router = express.Router();
 

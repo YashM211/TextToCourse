@@ -1,5 +1,5 @@
 // server/middlewares/auth0.js
-import { auth }200 from 'express-oauth2-jwt-bearer'; // Corrected import
+import { auth } from 'express-oauth2-jwt-bearer'; // Corrected import
 import dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables

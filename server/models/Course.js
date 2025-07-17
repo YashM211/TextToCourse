@@ -67,7 +67,7 @@ const lessonSchema = new mongoose.Schema({
   quiz: {
     // NEW LOCATION: Quiz field moved here
     questions: [quizQuestionSchema], // Array of quizQuestion subdocuments
-    default: undefined, // Explicitly set to undefined if no quiz is generated to prevent empty object in DB
+    default: [], // Explicitly set to undefined if no quiz is generated to prevent empty object in DB
   },
 });
 
