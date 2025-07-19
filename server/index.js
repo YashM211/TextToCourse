@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDb from "./config/db.js";
 import { checkJwt, attachUserToReq } from "./middlewares/auth0.js"; // Import Auth0 middleware
+import youtubeRoutes from './routes/youtubeRoutes.js'; // <--- NEW IMPORT
 
 // Load environment variables
 dotenv.config();
@@ -32,13 +33,14 @@ app.get("/api/public", (req, res) => {
 app.get("/api/private", checkJwt, (req, res) => {
   res.json({
     message:
-      "This is a private endpoint. Only authenticated users can access it!",
+    "This is a private endpoint. Only authenticated users can access it!",
   });
 });
 
 // Import and use actual API routes (for course generation)
 import courseRoutes from "./routes/courseRoutes.js";
 app.use("/api", checkJwt, attachUserToReq, courseRoutes); // Apply protection to all course routes
+app.use("/api", checkJwt, attachUserToReq, youtubeRoutes);
 
 // Define port
 const PORT = process.env.PORT || 5000;
