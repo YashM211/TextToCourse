@@ -1,67 +1,43 @@
 // server/models/Lesson.js
 import mongoose from "mongoose";
 
-// Define quizQuestionSchema directly here as it's tightly coupled to a lesson's quiz
-const quizQuestionSchema = new mongoose.Schema({
-  questionText: {
-    type: String,
-    required: true,
-  },
-  options: [
-    {
-      type: String,
-      required: true,
-    },
-  ],
-  correctAnswer: {
-    type: String,
-    required: true,
-  },
-  explanation: {
-    type: String,
-    required: true,
-  },
-});
-
-// The actual Lesson Schema
-const lessonSchema = new mongoose.Schema(
+const LessonSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: true,
     },
-    // Flexible content array for structured blocks (e.g., paragraphs, code, images, videos)
-    // This will be crucial for the "Rich Lessons" feature in Milestone 6
     content: {
-      type: [mongoose.Schema.Types.Mixed], // Allows for varied content structures
-      required: true,
-      default: [], // Ensure it's an array by default
+      type: mongoose.Schema.Types.Mixed, // Array of mixed types for blocks
+      default: [],
     },
-    isEnriched: {
-      // To track if AI-enhanced
-      type: Boolean,
-      default: false,
+    objectives: {
+      // NEW FIELD
+      type: [String],
+      default: [],
     },
-    // Optional: A field for Hinglish explanation, if not part of main content blocks
     hinglishExplanation: {
       type: String,
-      required: false,
+      default: "",
     },
     quiz: {
-      // Quiz for this specific lesson
-      questions: [quizQuestionSchema],
-      default: [], // Prevents empty quiz object if no questions
+      type: mongoose.Schema.Types.Mixed, // Object for quiz questions
+      default: {},
     },
     module: {
-      // Reference to its parent Module
       type: mongoose.Schema.Types.ObjectId,
       ref: "Module",
       required: true,
     },
+    isEnriched: {
+      // NEW FIELD: false initially, true after content generation
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
-); // Automatically add createdAt and updatedAt
+);
 
-const Lesson = mongoose.model("Lesson", lessonSchema);
+const Lesson = mongoose.model("Lesson", LessonSchema);
 
 export default Lesson;
