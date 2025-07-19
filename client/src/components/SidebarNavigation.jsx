@@ -1,4 +1,4 @@
-// client/src/components/SidebarNavigation.jsx
+// client/src/components/SidebarNavigation.jsx (UPDATED)
 import React from "react";
 import {
   Drawer,
@@ -15,7 +15,7 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { Link as RouterLink } from "react-router-dom"; // Use RouterLink for internal navigation
+import { Link as RouterLink } from "react-router-dom";
 
 function SidebarNavigation({ drawerWidth }) {
   return (
@@ -27,7 +27,7 @@ function SidebarNavigation({ drawerWidth }) {
         [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box" },
       }}
     >
-      <Toolbar /> {/* Spacer for AppBar */}
+      <Toolbar />
       <Box sx={{ overflow: "auto" }}>
         <List>
           <ListItem disablePadding>
@@ -41,7 +41,7 @@ function SidebarNavigation({ drawerWidth }) {
           <ListItem disablePadding>
             <ListItemButton component={RouterLink} to="/my-courses">
               {" "}
-              {/* Placeholder for My Courses */}
+              {/* <--- UPDATED LINK */}
               <ListItemIcon>
                 <LibraryBooksIcon />
               </ListItemIcon>
@@ -50,8 +50,6 @@ function SidebarNavigation({ drawerWidth }) {
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton component={RouterLink} to="/">
-              {" "}
-              {/* Link back to home to generate new */}
               <ListItemIcon>
                 <AddCircleOutlineIcon />
               </ListItemIcon>
@@ -60,7 +58,6 @@ function SidebarNavigation({ drawerWidth }) {
           </ListItem>
         </List>
         <Divider />
-        {/* You can add more sections or dynamic content here later */}
         <Box sx={{ p: 2 }}>
           <Typography variant="body2" color="text.secondary">
             Text-to-Learn v1.0

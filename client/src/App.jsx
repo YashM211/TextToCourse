@@ -17,7 +17,7 @@ import HomePage from "./pages/HomePage";
 import CourseOverviewPage from "./pages/CourseOverviewPage";
 import LessonViewerPage from "./pages/LessonViewerPage";
 import ProtectedRoute from "./components/ProtectedRoute"; // For protected routes
-
+import MyCoursesPage from "./pages/MyCoursesPage";
 // Define constants for drawer width
 const drawerWidth = 240;
 
@@ -103,7 +103,7 @@ function App() {
                 element={<LessonViewerPage />}
               />
               {/* Add a route for "My Courses" later */}
-              {/* <Route path="/my-courses" element={<MyCoursesPage />} /> */}
+              <Route path="/my-courses" element={<MyCoursesPage />} />
             </Route>
 
             {/* Catch-all for undefined routes */}

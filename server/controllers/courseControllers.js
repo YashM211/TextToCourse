@@ -210,4 +210,36 @@ const getCourseById = async (req, res) => {
   }
 };
 
-export { generateCourse, getCourseById, getLessonById };
+const getUserCourses = async (req, res) => {
+  const creator = req.userId; // User ID from Auth0 middleware
+
+  if (!creator) {
+    return res.status(401).json({ message: "User not authenticated." });
+  }
+
+  try {
+    // Find all courses where the creator matches the logged-in user's ID
+    // We'll populate modules to show a brief overview, but not lessons for performance
+    const courses = await Course.find({ creator: creator })
+      .populate({
+        path: "modules",
+        // You can choose to populate lessons here if you want to display lesson titles
+        // on the "My Courses" page directly, but it might be too much data.
+        // For now, we'll just get module titles.
+        // populate: {
+        //   path: 'lessons',
+        //   select: 'title' // Only fetch lesson titles if you do populate
+        // }
+      })
+      .sort({ createdAt: -1 }); // Sort by most recently created first
+
+    res.status(200).json(courses);
+  } catch (error) {
+    console.error("Error fetching user courses:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching user courses", error: error.message });
+  }
+};
+
+export { generateCourse, getCourseById, getLessonById, getUserCourses };

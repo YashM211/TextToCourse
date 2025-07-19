@@ -4,6 +4,7 @@ import {
   generateCourse,
   getCourseById,
   getLessonById,
+  getUserCourses,
 } from "../controllers/courseControllers.js"; // Will create these
 
 const router = express.Router();
@@ -13,8 +14,6 @@ const router = express.Router();
 router.post("/generate-course", generateCourse);
 router.get("/course/:id", getCourseById);
 router.get('/lesson/:id', getLessonById); // New route
-
-// Add a route to get user's courses later
-// router.get('/my-courses', getUserCourses);
+ router.get('/my-courses', getUserCourses);
 
 export default router;
