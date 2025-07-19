@@ -8,12 +8,12 @@ import LoadingSpinner from '../components/LoadingSpinner'; // Import new compone
 import ErrorMessage from '../components/ErrorMessage'; // Import new component
 
 function LessonViewerPage() {
-  const { id } = useParams(); // Get the lesson ID from the URL
+  const  id  = useParams().lessonId; // Get the lesson ID from the URL
   const { callApi } = useApi();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  console.log(useParams());
   useEffect(() => {
     const fetchLesson = async () => {
       try {
