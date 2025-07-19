@@ -3,6 +3,7 @@ import express from "express";
 import {
   generateCourse,
   getCourseById,
+  getLessonById,
 } from "../controllers/courseControllers.js"; // Will create these
 
 const router = express.Router();
@@ -11,6 +12,8 @@ const router = express.Router();
 // so these routes are already protected.
 router.post("/generate-course", generateCourse);
 router.get("/course/:id", getCourseById);
+router.get('/lesson/:id', getLessonById); // New route
+
 // Add a route to get user's courses later
 // router.get('/my-courses', getUserCourses);
 
