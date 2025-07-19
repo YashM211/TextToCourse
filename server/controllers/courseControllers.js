@@ -150,34 +150,30 @@ const generateCourse = async (req, res) => {
   }
 };
 
+// server/controllers/courseController.js (getCourseById function)
 const getCourseById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id).populate({
-      // Populate modules
-      path: "modules",
-      populate: {
-        // Populate lessons within modules
-        path: "lessons",
-      },
-    });
+    const course = await Course.findById(req.params.id)
+      .populate({
+        path: 'modules',
+        populate: {
+          path: 'lessons',
+        }
+      });
 
     if (!course) {
-      return res.status(404).json({ message: "Course not found" });
+      return res.status(404).json({ message: 'Course not found' });
     }
 
     // Optional: Only allow owner to view (if req.userId is available from Auth0)
     if (course.creator && req.userId && course.creator !== req.userId) {
-      return res
-        .status(403)
-        .json({ message: "Access denied: You do not own this course." });
+       return res.status(403).json({ message: 'Access denied: You do not own this course.' });
     }
 
     res.status(200).json(course);
   } catch (error) {
-    console.error("Error fetching course:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching course", error: error.message });
+    console.error('Error fetching course:', error);
+    res.status(500).json({ message: 'Error fetching course', error: error.message });
   }
 };
 

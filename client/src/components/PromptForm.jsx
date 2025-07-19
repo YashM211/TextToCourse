@@ -23,7 +23,7 @@ function PromptForm() {
         body: JSON.stringify({ topic }),
       });
       console.log("Course generated:", data);
-      navigate(`/course/${data._id}`); // Redirect to the new course overview page
+      navigate(`/courses/${data._id}`); // Redirect to the new course overview page
     } catch (error) {
       console.error("Error generating course:", error);
       // Display error to user

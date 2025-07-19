@@ -1,6 +1,6 @@
-// client/src/App.jsx (UPDATED)
+// client/src/App.jsx (UPDATED FOR LAYOUT AND ROUTING)
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom"; // Import Outlet
 import {
   Box,
   Container,
@@ -8,28 +8,42 @@ import {
   Toolbar,
   Typography,
   Button,
+  CircularProgress,
 } from "@mui/material";
+import { useAuth0 } from "@auth0/auth0-react";
+
 import SidebarNavigation from "./components/SidebarNavigation";
 import HomePage from "./pages/HomePage";
 import CourseOverviewPage from "./pages/CourseOverviewPage";
 import LessonViewerPage from "./pages/LessonViewerPage";
-import LoginPage from "./pages/LoginPage"; // This can be removed or simplified later
-import SignupPage from "./pages/SignupPage"; // This can be removed or simplified later
-import ProtectedRoute from './components/ProtectedRoute'; // New import
+import ProtectedRoute from "./components/ProtectedRoute"; // For protected routes
 
-
-// AUTH0 IMPORTS
-import { useAuth0 } from "@auth0/auth0-react";
+// Define constants for drawer width
+const drawerWidth = 240;
 
 function App() {
   const { isAuthenticated, loginWithRedirect, logout, isLoading } = useAuth0();
 
   if (isLoading) {
-    return <Typography>Loading authentication...</Typography>; // Or a proper spinner
+    // Global loading for Auth0 initialization
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading authentication...</Typography>
+      </Box>
+    );
   }
 
   return (
     <Box sx={{ display: "flex" }}>
+      {/* AppBar (Top Bar) */}
       <AppBar
         position="fixed"
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -55,33 +69,44 @@ function App() {
           )}
         </Toolbar>
       </AppBar>
-      {/* Sidebar - uncomment and connect when ready */}
-      {/* <SidebarNavigation /> */}
 
+      {/* Sidebar Navigation */}
+      {isAuthenticated && <SidebarNavigation drawerWidth={drawerWidth} />}
+
+      {/* Main Content Area */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, mt: "64px" /* Adjust for AppBar height */ }}
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` }, // Margin for sidebar
+          mt: "64px", // Adjust for AppBar height
+        }}
       >
+        <Toolbar />{" "}
+        {/* This empty Toolbar pushes content below the fixed AppBar */}
         <Container maxWidth="lg">
           <Routes>
+            {/* Public Home Page */}
             <Route path="/" element={<HomePage />} />
-            {/* Removed direct /login /signup as Auth0 handles it */}
-            <Route
-              path="/course/:id"
-              element={
-                <ProtectedRoute>
-                  <CourseOverviewPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/lesson/:id"
-              element={
-                <ProtectedRoute>
-                  <LessonViewerPage />
-                </ProtectedRoute>
-              }
-            />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              {/* Nested routes for authenticated users */}
+              <Route
+                path="/courses/:courseId"
+                element={<CourseOverviewPage />}
+              />
+              <Route
+                path="/courses/:courseId/modules/:moduleId/lessons/:lessonId"
+                element={<LessonViewerPage />}
+              />
+              {/* Add a route for "My Courses" later */}
+              {/* <Route path="/my-courses" element={<MyCoursesPage />} /> */}
+            </Route>
+
+            {/* Catch-all for undefined routes */}
             <Route path="*" element={<h1>404 Not Found</h1>} />
           </Routes>
         </Container>

@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import { Typography, Box, CircularProgress, Alert } from "@mui/material";
 import useApi from "../utils/api"; // Import your API hook
 import LessonRenderer from "../components/LessonRenderer"; // Import the new renderer
+import LoadingSpinner from '../components/LoadingSpinner'; // Import new component
+import ErrorMessage from '../components/ErrorMessage'; // Import new component
 
 function LessonViewerPage() {
   const { id } = useParams(); // Get the lesson ID from the URL
@@ -33,23 +35,11 @@ function LessonViewerPage() {
   }, [id, callApi]);
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "80vh",
-        }}
-      >
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading lesson...</Typography>
-      </Box>
-    );
+    return <LoadingSpinner message="Loading lesson content..." />;
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <ErrorMessage message={error} />;
   }
 
   if (!lesson) {

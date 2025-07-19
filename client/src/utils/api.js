@@ -1,13 +1,12 @@
 // client/src/utils/api.js
 import { useAuth0 } from "@auth0/auth0-react";
-import { useCallback } from "react"; // <--- ADD THIS IMPORT
+import { useCallback } from "react";
 
 const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
   const backendUrl = import.meta.env.VITE_BACKEND_API_URL;
   const auth0Audience = import.meta.env.VITE_AUTH0_AUDIENCE;
 
-  // Wrap callApi with useCallback to memoize it
   const callApi = useCallback(
     async (path, options = {}) => {
       try {
@@ -29,9 +28,12 @@ const useApi = () => {
           let errorData = await response
             .json()
             .catch(() => ({ message: "Server error" }));
-          throw new Error(
-            errorData.message || `HTTP error! status: ${response.status}`
-          );
+          // If errorData.message is not defined, use the status text
+          const errorMessage =
+            errorData.message ||
+            response.statusText ||
+            `HTTP error! status: ${response.status}`;
+          throw new Error(errorMessage);
         }
 
         return response.json();
@@ -41,7 +43,7 @@ const useApi = () => {
       }
     },
     [getAccessTokenSilently, backendUrl, auth0Audience]
-  ); // <--- DEPENDENCY ARRAY FOR useCallback
+  );
 
   return { callApi };
 };
