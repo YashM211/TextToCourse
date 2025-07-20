@@ -118,14 +118,15 @@ function LessonViewerPage() {
         >
           {courseTitle || "Course"}
         </Link>
-        <Link
+        {/* <Link
           component={RouterLink}
           underline="hover"
           color="inherit"
-          to={`/courses/${courseId}/modules/${moduleId}`}
+          to={`/courses/${courseId}}`}
         >
           {moduleTitle || "Module"}
-        </Link>
+        </Link> */}
+        <Typography color="inherit">{moduleTitle}</Typography>
         <Typography color="text.primary">{lesson.title}</Typography>
       </Breadcrumbs>
 
