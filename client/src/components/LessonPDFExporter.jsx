@@ -1,4 +1,4 @@
-// client/src/components/LessonPDFExporter.jsx (Further Optimized for Layout and Size)
+// client/src/components/LessonPDFExporter.jsx (FINAL OPTIMIZATION)
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -16,7 +16,10 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
   const printRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
-
+  const A4_WIDTH_MM = 210;
+  const A4_HEIGHT_MM = 297;
+  const DPI = 200; // Increased DPI to 200 for better clarity, still reasonable file size
+  const PX_PER_MM = DPI / 25.4; // Pixels per millimeter
   const handleDownloadPdf = async () => {
     if (!lesson) {
       setError("Lesson content not available for PDF export.");
@@ -30,122 +33,81 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
 
     try {
       // Give React a moment to render the content into the hidden div
-      await new Promise((resolve) => setTimeout(resolve, 200)); // Increased timeout for stability
+      // Increased timeout significantly to ensure all content (especially images/videos) are rendered
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (!printRef.current) {
         throw new Error("PDF content reference not found after rendering.");
       }
 
       const element = printRef.current;
-      // Scroll the hidden element to its top to ensure full content capture
-      element.scrollTop = 0;
+      element.scrollTop = 0; // Ensure hidden element is scrolled to top
 
-      // Define A4 dimensions for PDF and desired DPI
-      const A4_WIDTH_MM = 210;
-      const DPI = 150; // Keep DPI at 150 for file size, adjust if quality is insufficient
-      const PX_PER_MM = DPI / 25.4; // Pixels per millimeter (approx 5.9 px/mm at 150 DPI)
+    //   // Define A4 dimensions for PDF and desired DPI
+    //   const A4_WIDTH_MM = 210;
+    //   const A4_HEIGHT_MM = 297;
+    //   const DPI = 200; // Increased DPI to 200 for better clarity, still reasonable file size
+    //   const PX_PER_MM = DPI / 25.4; // Pixels per millimeter
 
-      // Margins for the PDF page (in mm)
-      const pdfMarginLeftRight_mm = 15;
-      const pdfMarginTopBottom_mm = 20;
+      const captureWidthPx = A4_WIDTH_MM * PX_PER_MM; // Full A4 width in pixels
+      // html2canvas should capture the *actual scroll height* of the content
+      const captureHeightPx = element.scrollHeight; // Capture the full actual height of the content
 
-      // Calculate the usable content width for PDF (in mm)
-      const contentUsableWidth_mm = A4_WIDTH_MM - pdfMarginLeftRight_mm * 2; // e.g., 210 - 30 = 180mm
-
-      // Calculate the pixel width that html2canvas should render the *content* into.
-      // This is the actual width of the `printRef` element.
-      const contentCaptureWidthPx = contentUsableWidth_mm * PX_PER_MM; // e.g., 180mm * 5.9 px/mm = ~1062px
-
-      // --- html2canvas options ---
       const canvas = await html2canvas(element, {
-        scale: DPI / 96, // Scale factor to render from browser's DPI (96) to target DPI (150)
+        scale: DPI / 96, // Scale factor to render from browser's DPI (96) to target DPI (200)
         useCORS: true,
         logging: false,
-        // Crucial: html2canvas should render *into* the exact content width.
-        // The element (`printRef`) is already sized to this content width via CSS.
-        width: contentCaptureWidthPx,
-        windowWidth: contentCaptureWidthPx, // Important for consistent rendering context
-        x: 0, // Capture from the very left of the `printRef` element (which is already the content area)
-        y: 0, // Capture from the very top of the `printRef` element
+        width: captureWidthPx, // Tell html2canvas to render to this exact width
+        windowWidth: captureWidthPx,
+        height: captureHeightPx, // Use actual scroll height for capture
+        windowHeight: captureHeightPx, // Use actual scroll height for capture window
+        x: 0,
+        y: 0,
         backgroundColor: "#ffffff", // Ensure white background
       });
 
-      // Using JPEG with quality 0.8 for smaller file size
-      const imgData = canvas.toDataURL("image/jpeg", 0.8);
+      const imgData = canvas.toDataURL("image/jpeg", 0.9); // Use higher quality 0.9
       const pdf = new jsPDF("p", "mm", "a4");
 
-      const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
-      const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
+      const imgWidth = canvas.width; // Actual pixel width of captured canvas
+      const imgHeight = canvas.height; // Actual pixel height of captured canvas (could be very long)
 
-      const imgProps = pdf.getImageProperties(imgData);
-      // Calculate image height while maintaining aspect ratio, scaling to the content width in PDF (180mm)
-      // The captured image's width (imgProps.width) corresponds to contentCaptureWidthPx
-      const finalImageHeight_mm =
-        (imgProps.height * contentUsableWidth_mm) / imgProps.width;
+      // Calculate the total height of the image when scaled to fit the PDF page width
+      const pdfPageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+      const pdfPageHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      let heightLeft = finalImageHeight_mm;
-      let currentPdfY = pdfMarginTopBottom_mm; // Start content below top margin
+      const scaleFactor = pdfPageWidth / imgWidth; // How much to scale imgWidth to fit pdfPageWidth
+      const totalImgHeightScaledToPdf = imgHeight * scaleFactor; // Total height of the image if rendered on PDF at this scale
 
-      // Add Header (Course, Module, Lesson Title)
-      pdf.setFontSize(18);
-      pdf.text(`${courseTitle}`, pdfMarginLeftRight_mm, currentPdfY);
-      currentPdfY += 8;
-      pdf.setFontSize(14);
-      pdf.text(`${moduleTitle}`, pdfMarginLeftRight_mm, currentPdfY);
-      currentPdfY += 12;
-      pdf.setFontSize(22);
-      pdf.text(`${lesson.title}`, pdfMarginLeftRight_mm, currentPdfY);
-      currentPdfY += 5;
-      pdf.setDrawColor(0);
-      pdf.line(
-        pdfMarginLeftRight_mm,
-        currentPdfY,
-        pdfWidth - pdfMarginLeftRight_mm,
-        currentPdfY
-      );
-      currentPdfY += 10; // Space after line, before content image starts
+      let heightLeft = totalImgHeightScaledToPdf; // Remaining height to render (in mm)
+      let position = 0; // Current Y position of the image on the PDF page (in mm)
 
-      // Calculate how much content image can fit on the first page below the header
-      const firstPageContentUsableHeight =
-        pdfHeight - currentPdfY - pdfMarginTopBottom_mm;
-
-      // Initial Y position for placing the content image
-      let imgSliceY = 0; // This tracks which part of the full image to show
-
-      // Add the first part of the image
+      // Add the first page of the image
+      // jsPDF adds one page by default, so we can directly add to it.
       pdf.addImage(
         imgData,
         "JPEG",
-        pdfMarginLeftRight_mm,
-        currentPdfY,
-        contentUsableWidth_mm,
-        firstPageContentUsableHeight,
-        undefined,
-        "FAST"
+        0,
+        position,
+        pdfPageWidth,
+        totalImgHeightScaledToPdf
       );
-      heightLeft -= firstPageContentUsableHeight;
-      imgSliceY += firstPageContentUsableHeight;
+      heightLeft -= pdfPageHeight;
 
-      // Add remaining pages
-      const pageContentHeight = pdfHeight - pdfMarginTopBottom_mm * 2; // Usable height for content on subsequent pages
-      while (heightLeft > 0) {
-        pdf.addPage();
-        // Add image, offsetting the Y position to show the next slice
+      // Add subsequent pages if content is longer than one page
+      while (heightLeft >= -1) {
+        // Use -1 to account for slight floating point inaccuracies for the last page
+        position = position - pdfPageHeight; // Move the image UP (negative Y) for the next page
+        pdf.addPage(); // Add a new blank page
         pdf.addImage(
           imgData,
           "JPEG",
-          pdfMarginLeftRight_mm,
-          pdfMarginTopBottom_mm,
-          contentUsableWidth_mm,
-          finalImageHeight_mm,
-          undefined,
-          "FAST",
-          imgSliceY,
-          0
+          0,
+          position,
+          pdfPageWidth,
+          totalImgHeightScaledToPdf
         );
-
-        heightLeft -= pageContentHeight;
-        imgSliceY += pageContentHeight;
+        heightLeft -= pdfPageHeight;
       }
 
       pdf.save(`${lesson.title}_Lesson.pdf`);
@@ -191,7 +153,7 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
     );
   };
 
-  // Styles for the hidden print content - CRITICAL FOR LAYOUT AND DOM FLICKER
+  // Styles for the hidden print content - CRITICAL FOR LAYOUT
   const printStyles = {
     all: "initial", // Reset all inherited styles for a clean slate
     boxSizing: "border-box",
@@ -199,38 +161,71 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
     lineHeight: 1.6,
     color: "#000",
     backgroundColor: "#fff",
-    // Set the width of this outer Box to be the *content area* width in pixels.
-    // This is what html2canvas will capture.
-    width: `${(210 - 15 * 2) * (150 / 25.4)}px`, // 180mm * (150 DPI / 25.4 mm/inch) = ~1062px
-    minHeight: `${297 * (150 / 25.4)}px`, // A4 height in pixels for sufficient rendering space
-    // Crucial for hiding and preventing layout shifts
+    // Set the width and minHeight of this outer Box to be the *full A4 page dimensions in pixels*.
+    // This element will be captured by html2canvas, so its internal padding will define margins.
+    width: `${A4_WIDTH_MM * PX_PER_MM}px`, // Full A4 width in pixels at 200 DPI
+    minHeight: `${A4_HEIGHT_MM * PX_PER_MM}px`, // Min A4 height in pixels at 200 DPI (for short content)
     position: "fixed",
     top: "-9999px",
     left: "-9999px",
     zIndex: -1,
-    overflow: "hidden", // Hide any scrollbars that might appear during capture
-    padding: "0", // No padding on this outer box, as its width *is* the content width.
+    overflow: "hidden", // Crucial to prevent scrollbars within the hidden element
+    padding: "20mm 15mm", // Top/Bottom 20mm, Left/Right 15mm margins applied here
 
-    // General styles for content within the print-ready Box
-    "& h1, & h2, & h3, & h4, & h5, & h6": {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      color: "#333",
-      marginTop: "1.5em",
+    // General styles for content (headings, paragraphs, lists, code, etc.)
+    "& h1": {
+      fontSize: "3rem",
+      marginBottom: "0.5em",
+      textAlign: "center",
+      pageBreakAfter: "avoid",
+    }, // For main lesson title in the PDF
+    "& h2": {
+      fontSize: "2.2rem",
       marginBottom: "0.5em",
       pageBreakAfter: "avoid",
-      fontWeight: "bold",
-      "&.MuiTypography-h4": { fontSize: "1.4rem" },
-      "&.MuiTypography-h5": { fontSize: "1.2rem" },
-      "&.MuiTypography-h6": { fontSize: "1.1rem" },
+    }, // For module title
+    "& h3": {
+      fontSize: "1.8rem",
+      marginBottom: "0.5em",
+      pageBreakAfter: "avoid",
+    }, // For lesson title in PDF
+    "& h4": {
+      fontSize: "1.6rem",
+      marginBottom: "0.5em",
+      pageBreakAfter: "avoid",
     },
+    "& h5": {
+      fontSize: "1.4rem",
+      marginBottom: "0.5em",
+      pageBreakAfter: "avoid",
+    },
+    "& h6": {
+      fontSize: "1.2rem",
+      marginBottom: "0.5em",
+      pageBreakAfter: "avoid",
+    },
+
+    // Core rule to prevent splitting for common block elements
+    "& p, & ul, & ol, & li, & img, & pre, & blockquote, & figure": {
+      pageBreakInside: "avoid",
+    },
+
     "& p": {
       marginBottom: "1em",
-      textAlign: "justify", // Justify text for a more formal document look
-      fontSize: "1em",
+      textAlign: "justify",
+      fontSize: "1.05rem", // Slightly adjusted font size for readability
+      lineHeight: 1.7,
+      // pageBreakInside: "avoid" handled by common rule above
     },
     "& ul, & ol": {
       marginLeft: "2em",
       marginBottom: "1em",
+      fontSize: "1.05rem", // Match paragraph font size
+    },
+    "& ul li, & ol li": {
+      // Apply to individual list items
+      marginBottom: "0.5em", // Add some spacing for readability
+      // pageBreakInside: "avoid" handled by common rule above
     },
     "& pre": {
       backgroundColor: "#f0f0f0",
@@ -239,17 +234,18 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
       borderRadius: "4px",
       overflowX: "auto",
       fontFamily: "monospace",
-      fontSize: "0.9em",
+      fontSize: "1rem", // Larger font for code blocks
       color: "#333",
       whiteSpace: "pre-wrap",
       wordBreak: "break-word",
-      pageBreakInside: "avoid",
+      // pageBreakInside: "avoid" handled by common rule above
     },
     "& code": {
       fontFamily: "monospace",
       backgroundColor: "#e0e0e0",
       padding: "2px 4px",
       borderRadius: "3px",
+      fontSize: "1rem", // Larger font for inline code
     },
     ".quiz-section-for-pdf": {
       border: "1px solid #ddd",
@@ -257,17 +253,21 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
       backgroundColor: "#f9f9f9",
       padding: "20px",
       marginTop: "30px",
-      pageBreakBefore: "always",
+      pageBreakBefore: "always", // Force quiz to start on a new page
+      fontSize: "1.05rem", // Set base font size for quiz section
     },
     ".quiz-question-for-pdf": {
       marginBottom: "15px",
+      fontSize: "1.05rem", // Quiz question font size
+      pageBreakInside: "avoid", // Keep entire quiz question together
     },
     ".quiz-option-for-pdf": {
       marginLeft: "20px",
-      lineHeight: 1.8,
+      lineHeight: 1.7,
+      fontSize: "1em", // Quiz option font size
     },
     ".quiz-explanation-for-pdf": {
-      fontSize: "0.9em",
+      fontSize: "0.95em", // Slightly larger explanation font
       color: "#555",
       marginTop: "5px",
       fontStyle: "italic",
@@ -282,17 +282,45 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
       justifyContent: "center",
       textAlign: "center",
       color: "#777",
-      fontSize: "0.9em",
+      fontSize: "1.1rem", // Larger font for video placeholder
       fontStyle: "italic",
       marginTop: "1em",
       marginBottom: "1em",
+      pageBreakInside: "avoid", // Keep video placeholder together
     },
-    // Ensure images in content don't exceed the content width
     img: {
       maxWidth: "100%",
       height: "auto",
-      display: "block", // To remove extra space below image
-      margin: "1em auto", // Center images
+      display: "block",
+      margin: "1em auto",
+      // pageBreakInside: "avoid" handled by common rule above
+    },
+    // Styles for Learning Objectives box to ensure it's readable
+    ".learning-objectives-for-pdf": {
+      mb: "1em",
+      borderLeft: "4px solid #1976d2",
+      pl: "1em",
+      py: "0.5em",
+      backgroundColor: "#e3f2fd",
+      color: "#000",
+      pageBreakInside: "avoid", // Keep learning objectives block together
+      "& ul": {
+        margin: 0,
+        paddingLeft: "2em",
+        color: "#000",
+      },
+      "& li": {
+        color: "#000",
+      },
+      "& .MuiTypography-h6": {
+        color: "#000",
+        fontWeight: "bold",
+        fontSize: "1.2rem", // Ensure objectives heading is readable
+      },
+      "& .MuiTypography-body1": {
+        color: "#000",
+        fontSize: "1.1rem", // Ensure objective list items are readable
+      },
     },
   };
 
@@ -326,19 +354,30 @@ function LessonPDFExporter({ lesson, courseTitle, moduleTitle }) {
           ref={printRef}
           sx={printStyles} // Apply all print-specific styles here
         >
-          {/* Learning Objectives for PDF - These are now directly inside printRef,
-              and their padding/margins contribute to the overall content layout. */}
+          {/* Header content now rendered *inside* printRef for html2canvas to capture */}
+          <Typography
+            variant="h6"
+            className="pdf-course-module-title"
+            sx={{ mb: 0 }}
+          >
+            {courseTitle} - {moduleTitle}
+          </Typography>
+          <Typography variant="h4" className="pdf-header-title" sx={{ mt: 0 }}>
+            {lesson.title}
+          </Typography>
+          <hr
+            style={{
+              border: "0",
+              borderTop: "1px solid #eee",
+              margin: "2em 0",
+            }}
+          />
+
+          {/* Learning Objectives for PDF - Now directly styled by printStyles */}
           {lesson.objectives && lesson.objectives.length > 0 && (
-            <Box
-              sx={{
-                mb: "1em",
-                borderLeft: "4px solid #1976d2",
-                pl: "1em",
-                py: "0.5em",
-                backgroundColor: "#e3f2fd",
-                color: "#000",
-              }}
-            >
+            <Box className="learning-objectives-for-pdf">
+              {" "}
+              {/* Added class for specific styling */}
               <Typography
                 variant="h6"
                 sx={{ color: "#000", fontWeight: "bold" }}
