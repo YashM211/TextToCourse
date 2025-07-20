@@ -1,41 +1,91 @@
-// client/src/pages/LessonViewerPage.jsx
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Typography, Box, CircularProgress, Alert } from "@mui/material";
-import useApi from "../utils/api"; // Import your API hook
-import LessonRenderer from "../components/LessonRenderer"; // Import the new renderer
-import LoadingSpinner from '../components/LoadingSpinner'; // Import new component
-import ErrorMessage from '../components/ErrorMessage'; // Import new component
+// client/src/pages/LessonViewerPage.jsx (Symmetry Improvement)
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, Link as RouterLink } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Breadcrumbs,
+  Link,
+  CircularProgress,
+  Button,
+  IconButton,
+  Container,
+} from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import SpeakerNotesIcon from "@mui/icons-material/SpeakerNotes";
+import useApi from "../utils/api";
+import LessonRenderer from "../components/LessonRenderer";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import LessonPDFExporter from "../components/LessonPDFExporter";
 
 function LessonViewerPage() {
-  const  id  = useParams().lessonId; // Get the lesson ID from the URL
+  const { courseId, moduleId, lessonId } = useParams();
   const { callApi } = useApi();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  console.log(useParams());
+  const [courseTitle, setCourseTitle] = useState("");
+  const [moduleTitle, setModuleTitle] = useState("");
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef(null);
+
   useEffect(() => {
-    const fetchLesson = async () => {
+    const fetchLessonAndContext = async () => {
       try {
         setLoading(true);
-        const data = await callApi(`/lesson/${id}`); // Assuming your backend has this route
-        setLesson(data);
+        setError(null);
+
+        const lessonData = await callApi(`/lesson/${lessonId}`);
+        setLesson(lessonData);
+
+        const courseData = await callApi(`/course/${courseId}`);
+        setCourseTitle(courseData.title);
+
+        const moduleData = courseData.modules.find((m) => m._id === moduleId);
+        if (moduleData) {
+          setModuleTitle(moduleData.title);
+        }
       } catch (err) {
-        console.error("Failed to fetch lesson:", err);
-        setError("Failed to load lesson content. Please try again.");
+        console.error("Failed to fetch lesson or course context:", err);
+        setError(
+          err.message ||
+            "Failed to load lesson content. Please ensure you are logged in and the lesson exists."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    {console.log(`Lesson id triggerring`,id)}
-    if (id) {
-      fetchLesson();
+    if (lessonId && courseId && moduleId) {
+      fetchLessonAndContext();
     }
-  }, [id, callApi]);
+  }, [lessonId, courseId, moduleId, callApi]);
+
+  const extractLessonText = (contentBlocks) => {
+    if (!contentBlocks) return "";
+    return contentBlocks
+      .filter((block) => block.type === "paragraph" || block.type === "heading")
+      .map((block) => block.text)
+      .join("\n");
+  };
+
+  const handlePlayHinglishExplanation = async () => {
+    // ... (Your existing Hinglish audio logic) ...
+  };
+
+  const handleAudioEnded = () => {
+    // ... (Your existing audio end logic) ...
+  };
+
+  const handleToggleAudio = () => {
+    // ... (Your existing audio toggle logic) ...
+  };
 
   if (loading) {
-    return <LoadingSpinner message="Loading lesson content..." />;
+    return <LoadingSpinner message="Loading lesson..." />;
   }
 
   if (error) {
@@ -43,38 +93,80 @@ function LessonViewerPage() {
   }
 
   if (!lesson) {
-    return (
-      <Typography variant="h5" sx={{ mt: 4 }}>
-        Lesson not found.
-      </Typography>
-    );
+    return <Typography variant="h6">Lesson not found.</Typography>;
   }
 
   return (
-    <Box sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link component={RouterLink} underline="hover" color="inherit" to="/">
+          Home
+        </Link>
+        <Link
+          component={RouterLink}
+          underline="hover"
+          color="inherit"
+          to="/my-courses"
+        >
+          My Courses
+        </Link>
+        <Link
+          component={RouterLink}
+          underline="hover"
+          color="inherit"
+          to={`/courses/${courseId}`}
+        >
+          {courseTitle || "Course"}
+        </Link>
+        <Link
+          component={RouterLink}
+          underline="hover"
+          color="inherit"
+          to={`/courses/${courseId}/modules/${moduleId}`}
+        >
+          {moduleTitle || "Module"}
+        </Link>
+        <Typography color="text.primary">{lesson.title}</Typography>
+      </Breadcrumbs>
+
       <Typography variant="h4" component="h1" gutterBottom>
         {lesson.title}
       </Typography>
 
-      {/* Render the lesson content */}
-      <LessonRenderer content={lesson.content} quiz={lesson.quiz} />
-
-      {lesson.hinglishExplanation && (
+      {/* Lesson Objectives */}
+      {lesson.objectives && lesson.objectives.length > 0 && (
         <Box
           sx={{
-            mt: 4,
-            p: 2,
-            borderLeft: "4px solid #fbc02d",
-            backgroundColor: "#fffde7",
+            mb: 3,
+            borderLeft: "4px solid #1976d2",
+            // Removed 'pl: 2' here. Padding should be handled by the Container or inner elements if needed.
+            py: 1,
+            backgroundColor: "#e3f2fd",
           }}
         >
-          <Typography variant="h6" color="text.secondary">
-            Hinglish Explanation:
+          <Typography variant="h6" color="primary" gutterBottom>
+            Learning Objectives:
           </Typography>
-          <Typography variant="body1">{lesson.hinglishExplanation}</Typography>
+          {/* Apply left padding to the UL directly inside the box if needed for list indentation */}
+          <ul style={{ margin: 0, paddingLeft: "2em" }}>
+            {lesson.objectives.map((obj, idx) => (
+              <li key={idx}>
+                <Typography variant="body1">{obj}</Typography>
+              </li>
+            ))}
+          </ul>
         </Box>
       )}
-    </Box>
+
+      {/* PDF Exporter Component */}
+      <LessonPDFExporter
+        lesson={lesson}
+        courseTitle={courseTitle}
+        moduleTitle={moduleTitle}
+      />
+
+      <LessonRenderer content={lesson.content} quiz={lesson.quiz} />
+    </Container>
   );
 }
 

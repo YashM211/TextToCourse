@@ -1,9 +1,9 @@
-// client/src/App.jsx (UPDATED FOR LAYOUT AND ROUTING)
+// client/src/App.jsx (IMPROVED UI - Centralized Container)
 import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom"; // Import Outlet
+import { Routes, Route, Outlet } from "react-router-dom";
 import {
   Box,
-  Container,
+  Container, // Ensure Container is imported
   AppBar,
   Toolbar,
   Typography,
@@ -16,16 +16,15 @@ import SidebarNavigation from "./components/SidebarNavigation";
 import HomePage from "./pages/HomePage";
 import CourseOverviewPage from "./pages/CourseOverviewPage";
 import LessonViewerPage from "./pages/LessonViewerPage";
-import ProtectedRoute from "./components/ProtectedRoute"; // For protected routes
+import ProtectedRoute from "./components/ProtectedRoute";
 import MyCoursesPage from "./pages/MyCoursesPage";
-// Define constants for drawer width
+
 const drawerWidth = 240;
 
 function App() {
   const { isAuthenticated, loginWithRedirect, logout, isLoading } = useAuth0();
 
   if (isLoading) {
-    // Global loading for Auth0 initialization
     return (
       <Box
         sx={{
@@ -42,7 +41,7 @@ function App() {
   }
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", width: "100vw" }}>
       {/* AppBar (Top Bar) */}
       <AppBar
         position="fixed"
@@ -78,15 +77,17 @@ function App() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 3, // Global padding around all page content
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` }, // Margin for sidebar
-          mt: "64px", // Adjust for AppBar height
+          ml: { sm: `${0}px` }, // Margin for sidebar
+          mt: "64px", // Adjust for AppBar height (default Toolbar height)
         }}
       >
-        <Toolbar />{" "}
+        {/* <Toolbar />{" "} */}
         {/* This empty Toolbar pushes content below the fixed AppBar */}
-        <Container maxWidth="lg">
+        {/* IMPORTANT: Move the Container here to wrap all routes */}
+        <Container maxWidth="md" sx={{ p: 0 }}>
+          {/* Use maxWidth="lg" or "md" as desired. Added p:0 to ensure no extra padding is added by Container itself if it has default */}
           <Routes>
             {/* Public Home Page */}
             <Route path="/" element={<HomePage />} />
@@ -102,7 +103,6 @@ function App() {
                 path="/courses/:courseId/modules/:moduleId/lessons/:lessonId"
                 element={<LessonViewerPage />}
               />
-              {/* Add a route for "My Courses" later */}
               <Route path="/my-courses" element={<MyCoursesPage />} />
             </Route>
 

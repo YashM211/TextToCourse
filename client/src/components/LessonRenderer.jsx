@@ -3,18 +3,17 @@ import React from "react";
 import HeadingBlock from "./blocks/HeadingBlock";
 import ParagraphBlock from "./blocks/ParagraphBlock";
 import CodeBlock from "./blocks/CodeBlock";
-// import VideoBlock from "./blocks/VideoBlock"; // Remove this line if it existed
-import VideoBlock from "./VideoBlock"; // <--- UPDATED IMPORT PATH for the new VideoBlock
+import VideoBlock from "./VideoBlock"; // Correct path for the new VideoBlock
 import MCQBlock from "./blocks/MCQBlock";
-import { Box, Typography, Alert, Divider } from "@mui/material"; // Added Divider and Alert for completeness
+import { Box, Typography, Alert, Divider } from "@mui/material";
 
+// Map block types to their respective components
 const blockComponents = {
   heading: HeadingBlock,
   paragraph: ParagraphBlock,
   code: CodeBlock,
-  video: VideoBlock, // Ensure this points to the new VideoBlock, which will handle the query prop
-  // 'mcq' type blocks are handled separately below, if you want them within 'content' array.
-  // Currently, your quiz is rendered from the separate 'quiz' prop.
+  video: VideoBlock,
+  // 'mcq' type is handled directly in the quiz section below or by MCQBlock if part of quiz prop
 };
 
 function LessonRenderer({ content, quiz }) {
@@ -31,20 +30,23 @@ function LessonRenderer({ content, quiz }) {
       {content.map((block, index) => {
         const BlockComponent = blockComponents[block.type];
         if (BlockComponent) {
-          // For the video block, ensure the 'url' from AI becomes 'query' for VideoBlock
+          // Special handling for video blocks: map 'url' from AI to 'query' prop
           if (block.type === "video") {
             return (
               <BlockComponent
                 key={index}
-                query={block.url} // Pass block.url as 'query' to the new VideoBlock
-                description={block.description} // Pass description if your VideoBlock uses it
+                query={block.url} // AI provides search query in 'url' field
+                description={block.description}
               />
             );
           }
           // For other block types, spread all properties
           return <BlockComponent key={index} {...block} />;
         }
-        console.warn(`Unknown block type: ${block.type}`);
+        // Warn for unsupported block types
+        console.warn(
+          `Unknown block type encountered in LessonRenderer: ${block.type}`
+        );
         return (
           <Alert key={index} severity="warning">
             Unsupported content type: {block.type}
@@ -52,6 +54,8 @@ function LessonRenderer({ content, quiz }) {
         );
       })}
 
+      {/* Render Quiz section only if quiz data is provided and has questions */}
+      {/* This allows LessonPDFExporter to pass quiz={null} to prevent duplicate rendering */}
       {quiz && quiz.questions && quiz.questions.length > 0 && (
         <Box
           sx={{
@@ -62,8 +66,7 @@ function LessonRenderer({ content, quiz }) {
             backgroundColor: "#f9f9f9",
           }}
         >
-          <Divider sx={{ mb: 3 }} />{" "}
-          {/* Added a Divider for visual separation */}
+          <Divider sx={{ mb: 3 }} />
           <Typography variant="h5" component="h2" gutterBottom>
             Quiz Time! 🤔
           </Typography>
