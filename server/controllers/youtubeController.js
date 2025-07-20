@@ -56,14 +56,14 @@ const searchYoutubeVideos = async (req, res) => {
     }
   } catch (error) {
     console.error(
-      "Error searching YouTube videos:",
+      "Error searching YouTube videos:",error,
       error.response ? error.response.data : error.message
     );
     res
       .status(500)
       .json({
         message: "Failed to search YouTube videos.",
-        error: error.message,
+        error: error,
       });
   }
 };
