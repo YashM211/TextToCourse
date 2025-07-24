@@ -121,7 +121,8 @@ Create a file named `.env` inside the `server/` directory and add the following:
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string # e.g., mongodb://localhost:27017/texttolearn
 YOUTUBE_API_KEY=your_youtube_data_api_key
-GEMINI_API_KEY=your_google_gemini_api_key
+AI_API_KEY=your_google_gemini_api_key
+AI_ENDPOINT=your_google_gemini_api end point
 AUTH0_AUDIENCE=your_auth0_api_audience # e.g., [https://your-domain.auth0.com/api/v2/](https://your-domain.auth0.com/api/v2/)
 AUTH0_DOMAIN=your_auth0_domain # e.g., dev-abc123xyz.us.auth0.com
 ```
@@ -135,14 +136,14 @@ Replace placeholders with your actual credentials.
 Create a file named `.env` inside the `client/` directory and add the following:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api # Or your Render backend URL for testing deployed backend
+VITE_BACKEND_API_URL=http://localhost:5000/api # Or your Render backend URL for testing deployed backend
 VITE_AUTH0_DOMAIN=your_auth0_domain # e.g., dev-abc123xyz.us.auth0.com
 VITE_AUTH0_CLIENT_ID=your_auth0_client_id
 VITE_AUTH0_AUDIENCE=your_auth0_api_audience # Must match backend's AUTH0_AUDIENCE
-VITE_AUTH0_CALLBACK_URL=http://localhost:5173 # Or your Vercel frontend URL for deployed frontend```
+VITE_AUTH0_CALLBACK_URL=http://localhost:5173 # Or your Vercel frontend URL for deployed frontend
+```
 Replace placeholders with your actual credentials.
 * `VITE_API_BASE_URL` should point to your local backend (`http://localhost:5000/api`) for local development.
-```
 ### Install Dependencies
 
 Navigate into both the `server` and `client` directories and install their respective dependencies.
