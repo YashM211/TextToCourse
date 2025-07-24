@@ -7,6 +7,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import App from "./App.jsx";
 import theme from "./theme.js";
 import "./index.css";
+import { Analytics } from "@vercel/analytics/next";
 
 // AUTH0 IMPORTS
 import { Auth0Provider } from "@auth0/auth0-react";
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <App />
+          <Analytics/>
         </ThemeProvider>
       </Auth0Provider>
     </BrowserRouter>
