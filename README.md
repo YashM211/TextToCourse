@@ -1,6 +1,6 @@
 # Text to Learn Course Generator
 
-![Project Screenshot Placeholder](https://drive.google.com/file/d/1_bUM4EZw0e3jZeg3d_NIs7aHsX0X6se9/view?usp=sharing)
+![Project Screenshot Placeholder](./TextTOCourseThumbnail.jpg)
 
 ## Table of Contents
 
