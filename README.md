@@ -1,7 +1,6 @@
 # Text to Learn Course Generator
 
-![Project Screenshot Placeholder](https://placehold.co/1200x600/E0E0E0/333333?text=Text-to-Learn+Course+Generator)
-*(Consider adding a compelling screenshot or GIF of your application here!)*
+![Project Screenshot Placeholder](https://drive.google.com/file/d/1_bUM4EZw0e3jZeg3d_NIs7aHsX0X6se9/view?usp=sharing)
 
 ## Table of Contents
 
